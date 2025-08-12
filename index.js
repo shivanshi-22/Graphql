@@ -1,13 +1,16 @@
-import express from "express";
 import { ApolloServer } from "@apollo/server";
-import { expressMiddleware } from "@apollo/server/express4";
-import bodyParser from "body-parser";
-import cors from "cors";
+import { startStandaloneServer } from "@apollo/server/standalone";
+import axios from "axios";
 
 async function startServer() {
-    const app = express();
-    const server = new ApolloServer({
-        typeDefs: `
+  const server = new ApolloServer({
+    typeDefs: `
+            type User {
+                id: ID!
+                name: String!
+                username: String! 
+                email: String!
+                phone: String! }
             type ToDo {
                 id: ID!
                 title: String!
@@ -15,17 +18,24 @@ async function startServer() {
             }
             type Query {
                 getToDo: [ToDo]
+                getAllUsers: [User]
             }
         `,
-        resolvers: {},
-    });
+    resolvers: {
+      Query: {
+        getToDo: async () =>
+          (await axios.get("https://jsonplaceholder.typicode.com/todos")).data,
+        getAllUsers: async () =>
+          (await axios.get("https://jsonplaceholder.typicode.com/users")).data,
+      },
+    },
+  });
 
-    await server.start();
-    app.use(bodyParser.json());
-    app.use(cors());
-    app.use("/graphql", expressMiddleware(server));
+  const { url } = await startStandaloneServer(server, {
+    listen: { port: 8000 },
+  });
 
-    app.listen(8000, () => console.log("Server started at port 8000."));
+  console.log(`🚀 Server ready at: ${url}`);
 }
 
 startServer();
