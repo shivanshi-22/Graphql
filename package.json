@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "type": "module",
   "dependencies": {
     "@apollo/server": "^5.0.0",
     "body-parser": "^2.2.0",
